@@ -33,6 +33,7 @@ async function run() {
   try {
     const mealcolection = client.db("hostalDB").collection("meals");
     const usercol = client.db("hostalDB").collection("users");
+    const upcommingmealcol = client.db("hostalDB").collection("upcommingmeal");
     // auth related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -151,6 +152,18 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await mealcolection.findOne(query);
+      res.send(result);
+    });
+
+    // =======================upcomming meaks================
+    app.get("/upcommingmeals", async (req, res) => {
+      const result = await upcommingmealcol.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/upcommingmeals", verifyToken, veryfiAdmin, async (req, res) => {
+      const item = req.body;
+      const result = await upcommingmealcol.insertOne(item);
       res.send(result);
     });
 
