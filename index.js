@@ -142,6 +142,17 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/meals/:id", async (req, res) => {
+      const id = req.params.id;
+      const likes = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updetdoc = {
+        $set: likes,
+      };
+      const result = await mealcolection.updateOne(query, updetdoc);
+      res.send(result);
+    });
+
     app.post("/addmeals", verifyToken, veryfiAdmin, async (req, res) => {
       const item = req.body;
       const result = await mealcolection.insertOne(item);
@@ -155,9 +166,27 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("/mealdelet/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await mealcolection.deleteOne(query);
+      res.send(result);
+    });
+
     // =======================upcomming meaks================
     app.get("/upcommingmeals", async (req, res) => {
       const result = await upcommingmealcol.find().toArray();
+      res.send(result);
+    });
+
+    app.patch("/upcommingm/:id", async (req, res) => {
+      const id = req.params.id;
+      const likes = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updetdoc = {
+        $set: likes,
+      };
+      const result = await upcommingmealcol.updateOne(query, updetdoc);
       res.send(result);
     });
 
