@@ -104,12 +104,6 @@ async function run() {
       }
       res.send({ admin });
     });
-    app.get("/useron/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const result = await usercol.findOne(query);
-      res.send(result);
-    });
 
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
@@ -139,6 +133,12 @@ async function run() {
     //==========================meals===========================================
     app.get("/meals", async (req, res) => {
       const result = await mealcolection.find().toArray();
+      res.send(result);
+    });
+    app.get("/admeals", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await mealcolection.find(query).toArray();
       res.send(result);
     });
 
