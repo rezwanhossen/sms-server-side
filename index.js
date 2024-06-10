@@ -2,7 +2,8 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const cors = require("cors");
-//const cookieParser = require("cookie-parser");
+const stripe = require("stripe")(process.env.STRIP_KEY);
+
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 // middleware
@@ -36,6 +37,7 @@ async function run() {
     const upcommingmealcol = client.db("hostalDB").collection("upcommingmeal");
     const requstmealcol = client.db("hostalDB").collection("requstmeal");
     const badgecol = client.db("hostalDB").collection("badge");
+    const paymentcol = client.db("hostalDB").collection("parment");
     // auth related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -44,20 +46,6 @@ async function run() {
       });
       res.send({ token });
     });
-    // Logout
-    // app.get("/logout", async (req, res) => {
-    //   try {
-    //     res
-    //       .clearCookie("token", {
-    //         maxAge: 0,
-    //         secure: process.env.NODE_ENV === "production",
-    //         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-    //       })
-    //       .send({ success: true });
-    //   } catch (err) {
-    //     res.status(500).send(err);
-    //   }
-    // });
 
     //======================================================
     // Verify Token Middleware
@@ -85,6 +73,23 @@ async function run() {
       }
       next();
     };
+    // ===================pyment =======================
+
+    app.post("/create-payment-intent", verifyToken, async (req, res) => {
+      const price = req.body.price; //paymentIntent { client_secret }
+      const amount = parseInt(price) * 100;
+      if (!price || amount < 1) return;
+      const { client_secret } = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        automatic_payment_methods: { enabled: true },
+        // payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: client_secret }); //clientSecret: paymentIntent.clint_secret,
+    });
+
+    // payment collection in badge
+
     //======================badge=========================
     app.get("/badge", async (req, res) => {
       const result = await badgecol.find().toArray();
@@ -94,7 +99,7 @@ async function run() {
     app.get("/badge/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await mealcolection.findOne(query);
+      const result = await badgecol.findOne(query);
       res.send(result);
     });
 
