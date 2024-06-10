@@ -34,6 +34,8 @@ async function run() {
     const mealcolection = client.db("hostalDB").collection("meals");
     const usercol = client.db("hostalDB").collection("users");
     const upcommingmealcol = client.db("hostalDB").collection("upcommingmeal");
+    const requstmealcol = client.db("hostalDB").collection("requstmeal");
+    const badgecol = client.db("hostalDB").collection("badge");
     // auth related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -83,11 +85,56 @@ async function run() {
       }
       next();
     };
+    //======================badge=========================
+    app.get("/badge", async (req, res) => {
+      const result = await badgecol.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/badge/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await mealcolection.findOne(query);
+      res.send(result);
+    });
+
+    //======================meal request collecto==================================
+
+    app.get("/allrequstmeal", verifyToken, veryfiAdmin, async (req, res) => {
+      const result = await requstmealcol.find().toArray();
+      res.send(result);
+    });
+    app.get("/requstmeal", verifyToken, async (req, res) => {
+      const email = req.query.userEmail;
+      const query = { email: email };
+      const result = await requstmealcol.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/requstmeal", async (req, res) => {
+      const item = req.body;
+      const result = await requstmealcol.insertOne(item);
+      res.send(result);
+    });
+
+    app.delete("/requstmeal/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await requstmealcol.deleteOne(query);
+      res.send(result);
+    });
 
     //==========================user collection=================================
 
     app.get("/users", verifyToken, async (req, res) => {
       const result = await usercol.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/useron/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await usercol.findOne(query);
       res.send(result);
     });
 
