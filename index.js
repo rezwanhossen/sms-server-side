@@ -217,6 +217,18 @@ async function run() {
       res.send(result);
     });
 
+    // app.get("/all-users", verifyToken, async (req, res) => {
+    //   const search = req.query.search;
+    //   let query = {
+    //     $or: [
+    //       { name: { $regex: search, $options: "i" } },
+    //       { email: { $regex: search, $options: "i" } },
+    //     ],
+    //   };
+    //   const result = await usercol.find(query).toArray();
+    //   res.send(result);
+    // });
+
     app.get("/useron/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -265,8 +277,16 @@ async function run() {
 
     //==========================meals===========================================
     app.get("/meals", async (req, res) => {
+      const result = await mealcolection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/all-meals", async (req, res) => {
       const filter = req.query.filter;
-      let query = {};
+      const search = req.query.search;
+      let query = {
+        title: { $regex: search, $options: "i" },
+      };
       if (filter) query.catagory = filter;
       const result = await mealcolection.find(query).toArray();
 
