@@ -265,9 +265,25 @@ async function run() {
 
     //==========================meals===========================================
     app.get("/meals", async (req, res) => {
-      const result = await mealcolection.find().toArray();
+      const filter = req.query.filter;
+      let query = {};
+      if (filter) query.catagory = filter;
+      const result = await mealcolection.find(query).toArray();
+
       res.send(result);
     });
+
+    app.patch("/reviusCount/:id", async (req, res) => {
+      const id = req.params.id;
+      const reviecCount = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updetdoc = {
+        $set: reviecCount,
+      };
+      const result = await requstmealcol.updateOne(query, updetdoc);
+      res.send(result);
+    });
+
     app.get("/admeals", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
