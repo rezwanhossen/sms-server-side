@@ -37,7 +37,8 @@ async function run() {
     const upcommingmealcol = client.db("hostalDB").collection("upcommingmeal");
     const requstmealcol = client.db("hostalDB").collection("requstmeal");
     const badgecol = client.db("hostalDB").collection("badge");
-    const paymentcol = client.db("hostalDB").collection("parment");
+    const paymentcol = client.db("hostalDB").collection("payment");
+    const reviewscol = client.db("hostalDB").collection("reviews");
     // auth related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -73,6 +74,7 @@ async function run() {
       }
       next();
     };
+
     // ===================pyment =======================
 
     app.post("/create-payment-intent", verifyToken, async (req, res) => {
@@ -89,6 +91,73 @@ async function run() {
     });
 
     // payment collection in badge
+    app.get("/payment", async (req, res) => {
+      const result = await paymentcol.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/payment/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await paymentcol.findOne(query);
+      res.send(result);
+    });
+    app.get("/payments", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await paymentcol.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/payment", verifyToken, async (req, res) => {
+      const item = req.body;
+      const result = await paymentcol.insertOne(item);
+      res.send(result);
+    });
+
+    //=====================reviews=======================
+    app.get("/reviews", verifyToken, async (req, res) => {
+      const result = await reviewscol.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/reviews/:mealid", async (req, res) => {
+      const mealid = req.params.mealid;
+      const query = { mealid: mealid };
+      const result = await reviewscol.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/myreviews/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await reviewscol.find(query).toArray();
+      res.send(result);
+    });
+
+    app.patch("/reviewLike/:id", async (req, res) => {
+      const id = req.params.id;
+      const likes = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updetdoc = {
+        $set: likes,
+      };
+      const result = await reviewscol.updateOne(query, updetdoc);
+      res.send(result);
+    });
+
+    app.post("/reviews", async (req, res) => {
+      const item = req.body;
+      const result = await reviewscol.insertOne(item);
+      res.send(result);
+    });
+
+    app.delete("/review/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await reviewscol.deleteOne(query);
+      res.send(result);
+    });
 
     //======================badge=========================
     app.get("/badge", async (req, res) => {
@@ -109,10 +178,22 @@ async function run() {
       const result = await requstmealcol.find().toArray();
       res.send(result);
     });
-    app.get("/requstmeal", verifyToken, async (req, res) => {
-      const email = req.query.userEmail;
-      const query = { email: email };
+
+    app.get("/requstmeals/:userEmail", verifyToken, async (req, res) => {
+      const userEmail = req.params.userEmail;
+      const query = { userEmail: userEmail };
       const result = await requstmealcol.find(query).toArray();
+      res.send(result);
+    });
+
+    app.patch("/requstmealsata/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updetdoc = {
+        $set: status,
+      };
+      const result = await requstmealcol.updateOne(query, updetdoc);
       res.send(result);
     });
 
@@ -122,7 +203,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/requstmeal/:id", async (req, res) => {
+    app.delete("/requstmeal/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await requstmealcol.deleteOne(query);
