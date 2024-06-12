@@ -186,6 +186,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/all-requstmeals", verifyToken, veryfiAdmin, async (req, res) => {
+      const search = req.query.search;
+      let query = {
+        $or: [
+          { user: { $regex: search, $options: "i" } },
+          { userEmail: { $regex: search, $options: "i" } },
+        ],
+      };
+      const result = await requstmealcol.find(query).toArray();
+      res.send(result);
+    });
+
     app.patch("/requstmealsata/:id", async (req, res) => {
       const id = req.params.id;
       const status = req.body;
@@ -369,6 +381,35 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await upcommingmealcol.deleteOne(query);
       res.send(result);
+    });
+
+    app.get("/admin-state", verifyToken, veryfiAdmin, async (req, res) => {
+      const users = await usercol.estimatedDocumentCount();
+      const review = await reviewscol.estimatedDocumentCount();
+      const totalmeals = await mealcolection.estimatedDocumentCount();
+      const suscribMember = await paymentcol.estimatedDocumentCount();
+      const Orders = await requstmealcol.estimatedDocumentCount();
+      // const payment = await paymentcol.find().toArray();
+      // const revenue = payment.reduce((total, pymen) => total + pymen.price, 0);
+      const result = await paymentcol
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totrevenue: { $sum: "$price" },
+            },
+          },
+        ])
+        .toArray();
+      const revenue = result.length > 0 ? result[0].totrevenue : 0;
+      res.send({
+        users,
+        review,
+        totalmeals,
+        suscribMember,
+        Orders,
+        revenue,
+      });
     });
 
     console.log(
