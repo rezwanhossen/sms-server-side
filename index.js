@@ -307,10 +307,10 @@ async function run() {
 
     app.patch("/reviusCount/:id", async (req, res) => {
       const id = req.params.id;
-      const reviecCount = req.body;
+      const reviewscount = req.body;
       const query = { _id: new ObjectId(id) };
       const updetdoc = {
-        $set: reviecCount,
+        $set: reviewscount,
       };
       const result = await requstmealcol.updateOne(query, updetdoc);
       res.send(result);
